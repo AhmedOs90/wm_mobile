@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/mockSupabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs } from '@/components/ui/tabs';
+import { ModalDialog } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MessageCircle, 
@@ -21,7 +22,7 @@ import {
   Trash2,
   Pin,
   Tag
-} from 'lucide-react';
+} from 'lucide-react-native';
 
 const ForumManagement = () => {
   const [newCategoryName, setNewCategoryName] = useState<string>('');
@@ -174,279 +175,309 @@ const ForumManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{categories?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Forum categories</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-            <MessageCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{posts?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Published: {posts?.filter(p => p.status === 'published').length || 0}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Posts</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {posts?.filter(p => p.status === 'pending').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Need review</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">User Badges</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userBadges?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Badges issued</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="categories" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="categories">Categories & Control</TabsTrigger>
-          <TabsTrigger value="moderation">Post Moderation</TabsTrigger>
-          <TabsTrigger value="badges">User Badges</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="categories" className="space-y-4">
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ gap: 24, padding: 16 }}>
+        {/* Overview Cards */}
+        <View style={{ gap: 16 }}>
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Forum Categories</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Category
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Category</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="category-name">Category Name</Label>
-                        <Input
-                          id="category-name"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="Enter category name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="category-desc">Description</Label>
-                        <Textarea
-                          id="category-desc"
-                          value={newCategoryDesc}
-                          onChange={(e) => setNewCategoryDesc(e.target.value)}
-                          placeholder="Enter category description"
-                        />
-                      </div>
-                      <Button
-                        onClick={() => createCategoryMutation.mutate({
-                          name: newCategoryName,
-                          description: newCategoryDesc
-                        })}
-                        disabled={!newCategoryName || createCategoryMutation.isPending}
-                        className="w-full"
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Total Categories</CardTitle>
+              <Tag size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{categories?.length || 0}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Forum categories</Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Total Posts</CardTitle>
+              <MessageCircle size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{posts?.length || 0}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Published: {posts?.filter(p => p.status === 'published').length || 0}
+              </Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Pending Posts</CardTitle>
+              <Eye size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {posts?.filter(p => p.status === 'pending').length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Need review</Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>User Badges</CardTitle>
+              <Users size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{userBadges?.length || 0}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Badges issued</Text>
+            </CardContent>
+          </Card>
+        </View>
+
+        <Tabs
+          tabs={['Categories & Control', 'Post Moderation', 'User Badges']}
+          initialTab={0}
+          tabContent={(activeIndex) => {
+            if (activeIndex === 0) {
+              // CATEGORIES
+              return (
+                <Card>
+                  <CardHeader>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <CardTitle>Forum Categories</CardTitle>
+                      <ModalDialog
+                        title="Create New Category"
+                        trigger={
+                          <Button>
+                            <Plus size={16} />
+                            Add Category
+                          </Button>
+                        }
                       >
-                        Create Category
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {categories?.map((category) => (
-                  <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{category.name}</h4>
-                      <p className="text-sm text-muted-foreground">{category.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {category.is_pinned && (
-                        <Badge variant="default">Pinned</Badge>
-                      )}
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="moderation" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Post Moderation Tools</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {posts?.map((post) => (
-                  <div key={post.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{post.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {post.content?.substring(0, 100)}...
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline">{post.status}</Badge>
-                          {post.is_pinned && (
-                            <Badge variant="default">Pinned</Badge>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {post.views_count} views • {post.likes_count} likes
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => togglePinPost(post.id, post.is_pinned)}
+                        <View style={{ gap: 16 }}>
+                          <View>
+                            <Label>Category Name</Label>
+                            <Input
+                              value={newCategoryName}
+                              onChangeText={setNewCategoryName}
+                              placeholder="Enter category name"
+                            />
+                          </View>
+                          <View>
+                            <Label>Description</Label>
+                            <Textarea
+                              value={newCategoryDesc}
+                              onChangeText={setNewCategoryDesc}
+                              placeholder="Enter category description"
+                            />
+                          </View>
+                          <Button
+                            onPress={() => createCategoryMutation.mutate({
+                              name: newCategoryName,
+                              description: newCategoryDesc
+                            })}
+                            disabled={!newCategoryName || createCategoryMutation.isPending}
+                          >
+                            Create Category
+                          </Button>
+                        </View>
+                      </ModalDialog>
+                    </View>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 12 }}>
+                      {categories?.map((category) => (
+                        <View 
+                          key={category.id} 
+                          style={{ 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between', 
+                            padding: 12, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
                         >
-                          <Pin className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant={post.status === 'published' ? 'destructive' : 'default'}
-                          size="sm"
-                          onClick={() => togglePostStatus(
-                            post.id, 
-                            post.status === 'published' ? 'hidden' : 'published'
-                          )}
-                        >
-                          {post.status === 'published' ? 'Hide' : 'Publish'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                          <View>
+                            <Text style={{ fontWeight: '500' }}>{category.name}</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280' }}>{category.description}</Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            {category.is_pinned && (
+                              <Badge variant="default">Pinned</Badge>
+                            )}
+                            <Button 
+                              variant="outline"
+                              iconLeft={<Edit size={16} color="#111827" />}
+                            >
+                              {/* Icon only */}
+                            </Button>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
 
-        <TabsContent value="badges" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>User Badge Assignment</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Assign Badge
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Assign User Badge</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="user-id">User ID</Label>
-                        <Input
-                          id="user-id"
-                          value={selectedUserId}
-                          onChange={(e) => setSelectedUserId(e.target.value)}
-                          placeholder="Enter user ID"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="badge-type">Badge Type</Label>
-                        <Select value={badgeType} onValueChange={setBadgeType}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="verified_employer">Verified Employer</SelectItem>
-                            <SelectItem value="top_contributor">Top Contributor</SelectItem>
-                            <SelectItem value="mentor">Mentor</SelectItem>
-                            <SelectItem value="expert">Expert</SelectItem>
-                            <SelectItem value="helper">Helper</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="badge-name">Badge Name</Label>
-                        <Input
-                          id="badge-name"
-                          value={badgeName}
-                          onChange={(e) => setBadgeName(e.target.value)}
-                          placeholder="Enter badge display name"
-                        />
-                      </div>
-                      <Button
-                        onClick={() => assignBadgeMutation.mutate({
-                          user_id: selectedUserId,
-                          badge_type: badgeType,
-                          badge_name: badgeName,
-                          badge_description: `${badgeType.replace('_', ' ')} badge`
-                        })}
-                        disabled={!selectedUserId || !badgeName || assignBadgeMutation.isPending}
-                        className="w-full"
+            if (activeIndex === 1) {
+              // POST MODERATION
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Post Moderation Tools</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 16 }}>
+                      {posts?.map((post) => (
+                        <View 
+                          key={post.id} 
+                          style={{ 
+                            padding: 16, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontWeight: '500' }}>{post.title}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+                                {post.content?.substring(0, 100)}...
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <Badge variant="outline">{post.status}</Badge>
+                                {post.is_pinned && (
+                                  <Badge variant="default">Pinned</Badge>
+                                )}
+                                <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                  {post.views_count} views • {post.likes_count} likes
+                                </Text>
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <Button
+                                variant="outline"
+                                onPress={() => togglePinPost(post.id, post.is_pinned)}
+                                iconLeft={<Pin size={16} color="#111827" />}
+                              >
+                                {/* Icon only */}
+                              </Button>
+                              <Button
+                                variant={post.status === 'published' ? 'destructive' : 'default'}
+                                onPress={() => togglePostStatus(
+                                  post.id, 
+                                  post.status === 'published' ? 'hidden' : 'published'
+                                )}
+                              >
+                                {post.status === 'published' ? 'Hide' : 'Publish'}
+                              </Button>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            if (activeIndex === 2) {
+              // USER BADGES
+              return (
+                <Card>
+                  <CardHeader>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <CardTitle>User Badge Assignment</CardTitle>
+                      <ModalDialog
+                        title="Assign User Badge"
+                        trigger={
+                          <Button>
+                            <Plus size={16} />
+                            Assign Badge
+                          </Button>
+                        }
                       >
-                        Assign Badge
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {userBadges?.map((badge) => (
-                  <div key={badge.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{badge.badge_name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        User: {badge.user_id} • Type: {badge.badge_type}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Issued: {new Date(badge.issued_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge variant="secondary">{badge.badge_type}</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+                        <View style={{ gap: 16 }}>
+                          <View>
+                            <Label>User ID</Label>
+                            <Input
+                              value={selectedUserId}
+                              onChangeText={setSelectedUserId}
+                              placeholder="Enter user ID"
+                            />
+                          </View>
+                          <View>
+                            <Label>Badge Type</Label>
+                            <Select 
+                              value={badgeType} 
+                              onValueChange={setBadgeType}
+                              options={[
+                                { label: 'Verified Employer', value: 'verified_employer' },
+                                { label: 'Top Contributor', value: 'top_contributor' },
+                                { label: 'Mentor', value: 'mentor' },
+                                { label: 'Expert', value: 'expert' },
+                                { label: 'Helper', value: 'helper' }
+                              ]}
+                            />
+                          </View>
+                          <View>
+                            <Label>Badge Name</Label>
+                            <Input
+                              value={badgeName}
+                              onChangeText={setBadgeName}
+                              placeholder="Enter badge display name"
+                            />
+                          </View>
+                          <Button
+                            onPress={() => assignBadgeMutation.mutate({
+                              user_id: selectedUserId,
+                              badge_type: badgeType,
+                              badge_name: badgeName,
+                              badge_description: `${badgeType.replace('_', ' ')} badge`
+                            })}
+                            disabled={!selectedUserId || !badgeName || assignBadgeMutation.isPending}
+                          >
+                            Assign Badge
+                          </Button>
+                        </View>
+                      </ModalDialog>
+                    </View>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 12 }}>
+                      {userBadges?.map((badge) => (
+                        <View 
+                          key={badge.id} 
+                          style={{ 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between', 
+                            padding: 12, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View>
+                            <Text style={{ fontWeight: '500' }}>{badge.badge_name}</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                              User: {badge.user_id} • Type: {badge.badge_type}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                              Issued: {new Date(badge.issued_at).toLocaleDateString()}
+                            </Text>
+                          </View>
+                          <Badge variant="secondary">{badge.badge_type}</Badge>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            return null;
+          }}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
