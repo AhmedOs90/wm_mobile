@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/mockSupabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs } from '@/components/ui/tabs';
+import { ModalDialog } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import Select from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Bell, 
@@ -21,14 +22,16 @@ import {
   Edit,
   Eye,
   Clock
-} from 'lucide-react';
+} from 'lucide-react-native';
 
 const NotificationEngine = () => {
   const [templateName, setTemplateName] = useState<string>('');
   const [templateSubject, setTemplateSubject] = useState<string>('');
   const [templateContent, setTemplateContent] = useState<string>('');
   const [templateType, setTemplateType] = useState<string>('announcement');
-  const [deliveryMethods, setDeliveryMethods] = useState<string[]>(['in_app']);
+  const [deliveryInApp, setDeliveryInApp] = useState<boolean>(true);
+  const [deliveryEmail, setDeliveryEmail] = useState<boolean>(false);
+  const [deliveryPush, setDeliveryPush] = useState<boolean>(false);
   const [targetAudience, setTargetAudience] = useState<string>('all');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -88,7 +91,9 @@ const NotificationEngine = () => {
       setTemplateName('');
       setTemplateSubject('');
       setTemplateContent('');
-      setDeliveryMethods(['in_app']);
+      setDeliveryInApp(true);
+      setDeliveryEmail(false);
+      setDeliveryPush(false);
       queryClient.invalidateQueries({ queryKey: ['notification-templates'] });
     }
   });
@@ -147,305 +152,306 @@ const NotificationEngine = () => {
     }
   };
 
-  const handleDeliveryMethodChange = (method: string, checked: boolean) => {
-    if (checked) {
-      setDeliveryMethods([...deliveryMethods, method]);
-    } else {
-      setDeliveryMethods(deliveryMethods.filter(m => m !== method));
-    }
+  const getDeliveryMethods = () => {
+    const methods = [];
+    if (deliveryInApp) methods.push('in_app');
+    if (deliveryEmail) methods.push('email');
+    if (deliveryPush) methods.push('push');
+    return methods;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Templates</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {templates?.filter(t => t.is_active).length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total: {templates?.length || 0}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{broadcasts?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Total broadcasts</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {broadcasts?.filter(b => b.status === 'scheduled').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Pending delivery</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Recipients</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {broadcasts?.reduce((sum, b) => sum + (b.sent_count || 0), 0) || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Messages delivered</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="templates" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="templates">Notification Templates</TabsTrigger>
-          <TabsTrigger value="history">Delivery History</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="templates" className="space-y-4">
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ gap: 24, padding: 16 }}>
+        {/* Overview Cards */}
+        <View style={{ gap: 16 }}>
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Notification Templates</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Template
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Create Notification Template</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="template-name">Template Name</Label>
-                        <Input
-                          id="template-name"
-                          value={templateName}
-                          onChange={(e) => setTemplateName(e.target.value)}
-                          placeholder="Enter template name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="template-subject">Subject</Label>
-                        <Input
-                          id="template-subject"
-                          value={templateSubject}
-                          onChange={(e) => setTemplateSubject(e.target.value)}
-                          placeholder="Enter notification subject"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="template-content">Content</Label>
-                        <Textarea
-                          id="template-content"
-                          value={templateContent}
-                          onChange={(e) => setTemplateContent(e.target.value)}
-                          placeholder="Enter notification content"
-                          rows={6}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="template-type">Template Type</Label>
-                        <Select value={templateType} onValueChange={setTemplateType}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new_message">New Message</SelectItem>
-                            <SelectItem value="forum_reply">Forum Reply</SelectItem>
-                            <SelectItem value="poll_reminder">Poll Reminder</SelectItem>
-                            <SelectItem value="announcement">Announcement</SelectItem>
-                            <SelectItem value="event_reminder">Event Reminder</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Delivery Methods</Label>
-                        <div className="flex flex-col gap-2 mt-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="in-app"
-                              checked={deliveryMethods.includes('in_app')}
-                              onCheckedChange={(checked) => 
-                                handleDeliveryMethodChange('in_app', checked as boolean)
-                              }
-                            />
-                            <Label htmlFor="in-app">In-App Notification</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="email"
-                              checked={deliveryMethods.includes('email')}
-                              onCheckedChange={(checked) => 
-                                handleDeliveryMethodChange('email', checked as boolean)
-                              }
-                            />
-                            <Label htmlFor="email">Email</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="push"
-                              checked={deliveryMethods.includes('push')}
-                              onCheckedChange={(checked) => 
-                                handleDeliveryMethodChange('push', checked as boolean)
-                              }
-                            />
-                            <Label htmlFor="push">Push Notification</Label>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="target-audience">Target Audience</Label>
-                        <Select value={targetAudience} onValueChange={setTargetAudience}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Users</SelectItem>
-                            <SelectItem value="candidates">Only Candidates</SelectItem>
-                            <SelectItem value="employers">Only Employers</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button
-                        onClick={() => createTemplateMutation.mutate({
-                          name: templateName,
-                          subject: templateSubject,
-                          content: templateContent,
-                          template_type: templateType,
-                          delivery_methods: deliveryMethods,
-                          target_audience: targetAudience
-                        })}
-                        disabled={!templateName || !templateSubject || !templateContent || createTemplateMutation.isPending}
-                        className="w-full"
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Active Templates</CardTitle>
+              <Bell size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {templates?.filter(t => t.is_active).length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Total: {templates?.length || 0}
+              </Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Messages Sent</CardTitle>
+              <Send size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{broadcasts?.length || 0}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Total broadcasts</Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Scheduled</CardTitle>
+              <Clock size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {broadcasts?.filter(b => b.status === 'scheduled').length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Pending delivery</Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Total Recipients</CardTitle>
+              <MessageSquare size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {broadcasts?.reduce((sum, b) => sum + (b.sent_count || 0), 0) || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Messages delivered</Text>
+            </CardContent>
+          </Card>
+        </View>
+
+        <Tabs
+          tabs={['Notification Templates', 'Delivery History']}
+          initialTab={0}
+          tabContent={(activeIndex) => {
+            if (activeIndex === 0) {
+              // TEMPLATES
+              return (
+                <Card>
+                  <CardHeader>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <CardTitle>Notification Templates</CardTitle>
+                      <ModalDialog
+                        title="Create Notification Template"
+                        trigger={
+                          <Button>
+                            <Plus size={16} />
+                            Create Template
+                          </Button>
+                        }
                       >
-                        Create Template
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {templates?.map((template) => (
-                  <div key={template.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Subject: {template.subject}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline">{template.template_type}</Badge>
-                          <Badge variant={template.is_active ? 'default' : 'secondary'}>
-                            {template.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                          <Badge variant="outline">{template.target_audience}</Badge>
-                        </div>
-                        <div className="flex gap-1 mt-2">
-                          {template.delivery_methods.map((method) => (
-                            <Badge key={method} variant="outline" className="text-xs">
-                              {method === 'in_app' ? 'In-App' : method === 'email' ? 'Email' : 'Push'}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => sendTestMutation.mutate(template.id)}
-                          disabled={sendTestMutation.isPending}
+                        <View style={{ gap: 16 }}>
+                          <View>
+                            <Label>Template Name</Label>
+                            <Input
+                              value={templateName}
+                              onChangeText={setTemplateName}
+                              placeholder="Enter template name"
+                            />
+                          </View>
+                          <View>
+                            <Label>Subject</Label>
+                            <Input
+                              value={templateSubject}
+                              onChangeText={setTemplateSubject}
+                              placeholder="Enter notification subject"
+                            />
+                          </View>
+                          <View>
+                            <Label>Content</Label>
+                            <Textarea
+                              value={templateContent}
+                              onChangeText={setTemplateContent}
+                              placeholder="Enter notification content"
+                              numberOfLines={6}
+                            />
+                          </View>
+                          <View>
+                            <Label>Template Type</Label>
+                            <Select
+                              value={templateType}
+                              onValueChange={setTemplateType}
+                              options={[
+                                { label: 'New Message', value: 'new_message' },
+                                { label: 'Forum Reply', value: 'forum_reply' },
+                                { label: 'Poll Reminder', value: 'poll_reminder' },
+                                { label: 'Announcement', value: 'announcement' },
+                                { label: 'Event Reminder', value: 'event_reminder' }
+                              ]}
+                            />
+                          </View>
+                          <View>
+                            <Label>Delivery Methods</Label>
+                            <View style={{ gap: 8, marginTop: 8 }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text>In-App Notification</Text>
+                                <Switch value={deliveryInApp} onValueChange={setDeliveryInApp} />
+                              </View>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text>Email</Text>
+                                <Switch value={deliveryEmail} onValueChange={setDeliveryEmail} />
+                              </View>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text>Push Notification</Text>
+                                <Switch value={deliveryPush} onValueChange={setDeliveryPush} />
+                              </View>
+                            </View>
+                          </View>
+                          <View>
+                            <Label>Target Audience</Label>
+                            <Select
+                              value={targetAudience}
+                              onValueChange={setTargetAudience}
+                              options={[
+                                { label: 'All Users', value: 'all' },
+                                { label: 'Only Candidates', value: 'candidates' },
+                                { label: 'Only Employers', value: 'employers' }
+                              ]}
+                            />
+                          </View>
+                          <Button
+                            onPress={() => createTemplateMutation.mutate({
+                              name: templateName,
+                              subject: templateSubject,
+                              content: templateContent,
+                              template_type: templateType,
+                              delivery_methods: getDeliveryMethods(),
+                              target_audience: targetAudience
+                            })}
+                            disabled={!templateName || !templateSubject || !templateContent || createTemplateMutation.isPending}
+                          >
+                            Create Template
+                          </Button>
+                        </View>
+                      </ModalDialog>
+                    </View>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 16 }}>
+                      {templates?.map((template) => (
+                        <View 
+                          key={template.id} 
+                          style={{ 
+                            padding: 16, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
                         >
-                          <Send className="h-4 w-4 mr-2" />
-                          Test
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleTemplate(template.id, template.is_active)}
-                        >
-                          {template.is_active ? 'Disable' : 'Enable'}
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontWeight: '500' }}>{template.name}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+                                Subject: {template.subject}
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <Badge variant="outline">{template.template_type}</Badge>
+                                <Badge variant={template.is_active ? 'default' : 'secondary'}>
+                                  {template.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                                <Badge variant="outline">{template.target_audience}</Badge>
+                              </View>
+                              <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+                                {template.delivery_methods.map((method) => (
+                                  <Badge key={method} variant="outline" style={{ fontSize: 12 }}>
+                                    {method === 'in_app' ? 'In-App' : method === 'email' ? 'Email' : 'Push'}
+                                  </Badge>
+                                ))}
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <Button
+                                variant="outline"
+                                onPress={() => sendTestMutation.mutate(template.id)}
+                                disabled={sendTestMutation.isPending}
+                                iconLeft={<Send size={16} color="#111827" />}
+                              >
+                                Test
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onPress={() => toggleTemplate(template.id, template.is_active)}
+                              >
+                                {template.is_active ? 'Disable' : 'Enable'}
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                iconLeft={<Edit size={16} color="#111827" />}
+                              >
+                                {/* Icon only */}
+                              </Button>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
 
-        <TabsContent value="history" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Delivery History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {broadcasts?.map((broadcast) => (
-                  <div key={broadcast.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{broadcast.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {broadcast.content.substring(0, 100)}...
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={
-                            broadcast.status === 'sent' ? 'default' :
-                            broadcast.status === 'scheduled' ? 'secondary' : 'outline'
-                          }>
-                            {broadcast.status}
-                          </Badge>
-                          <Badge variant="outline">{broadcast.target_audience}</Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {broadcast.sent_count} recipients
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {broadcast.sent_at ? 
-                            `Sent: ${new Date(broadcast.sent_at).toLocaleString()}` :
-                            `Created: ${new Date(broadcast.created_at).toLocaleString()}`
-                          }
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            if (activeIndex === 1) {
+              // DELIVERY HISTORY
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Delivery History</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 16 }}>
+                      {broadcasts?.map((broadcast) => (
+                        <View 
+                          key={broadcast.id} 
+                          style={{ 
+                            padding: 16, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontWeight: '500' }}>{broadcast.title}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+                                {broadcast.content.substring(0, 100)}...
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <Badge variant={
+                                  broadcast.status === 'sent' ? 'default' :
+                                  broadcast.status === 'scheduled' ? 'secondary' : 'outline'
+                                }>
+                                  {broadcast.status}
+                                </Badge>
+                                <Badge variant="outline">{broadcast.target_audience}</Badge>
+                                <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                  {broadcast.sent_count} recipients
+                                </Text>
+                              </View>
+                              <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                                {broadcast.sent_at ? 
+                                  `Sent: ${new Date(broadcast.sent_at).toLocaleString()}` :
+                                  `Created: ${new Date(broadcast.created_at).toLocaleString()}`
+                                }
+                              </Text>
+                            </View>
+                            <Button 
+                              variant="outline"
+                              iconLeft={<Eye size={16} color="#111827" />}
+                            >
+                              View Details
+                            </Button>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            return null;
+          }}
+        />
+      </View>
+    </ScrollView>
   );
 };
 

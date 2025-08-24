@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/mockSupabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs } from '@/components/ui/tabs';
+import { ModalDialog } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart3, 
@@ -19,7 +20,7 @@ import {
   Eye,
   Clock,
   CheckCircle
-} from 'lucide-react';
+} from 'lucide-react-native';
 
 const PollsEventsManager = () => {
   const [pollTitle, setPollTitle] = useState<string>('');
@@ -184,325 +185,338 @@ const PollsEventsManager = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Polls</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {polls?.filter(p => p.status === 'active').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total: {polls?.length || 0}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {events?.filter(e => new Date(e.start_date) > new Date()).length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total events: {events?.length || 0}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Votes</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {polls?.reduce((sum, poll) => sum + (poll.total_votes || 0), 0) || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Across all polls</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Event Registrations</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{registrations?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Total registrations</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="polls" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="polls">Polls & Surveys</TabsTrigger>
-          <TabsTrigger value="events">Community Events</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="polls" className="space-y-4">
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ gap: 24, padding: 16 }}>
+        {/* Overview Cards */}
+        <View style={{ gap: 16 }}>
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Poll Creation & Management</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Poll
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Create New Poll</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="poll-title">Poll Title</Label>
-                        <Input
-                          id="poll-title"
-                          value={pollTitle}
-                          onChange={(e) => setPollTitle(e.target.value)}
-                          placeholder="Enter poll title"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="poll-description">Description</Label>
-                        <Textarea
-                          id="poll-description"
-                          value={pollDescription}
-                          onChange={(e) => setPollDescription(e.target.value)}
-                          placeholder="Enter poll description"
-                        />
-                      </div>
-                      <div>
-                        <Label>Poll Options</Label>
-                        <div className="space-y-2">
-                          {pollOptions.map((option, index) => (
-                            <div key={index} className="flex gap-2">
-                              <Input
-                                value={option}
-                                onChange={(e) => updatePollOption(index, e.target.value)}
-                                placeholder={`Option ${index + 1}`}
-                              />
-                              {pollOptions.length > 2 && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removePollOption(index)}
-                                >
-                                  Remove
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={addPollOption}
-                          className="mt-2"
-                        >
-                          Add Option
-                        </Button>
-                      </div>
-                      <div>
-                        <Label htmlFor="poll-audience">Target Audience</Label>
-                        <Select value={pollAudience} onValueChange={setPollAudience}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Users</SelectItem>
-                            <SelectItem value="candidates">Only Candidates</SelectItem>
-                            <SelectItem value="employers">Only Employers</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button
-                        onClick={() => createPollMutation.mutate({
-                          title: pollTitle,
-                          description: pollDescription,
-                          options: pollOptions.filter(opt => opt.trim()).map((option, index) => ({
-                            option,
-                            votes: 0,
-                            index
-                          })),
-                          target_audience: pollAudience
-                        })}
-                        disabled={!pollTitle || pollOptions.filter(opt => opt.trim()).length < 2 || createPollMutation.isPending}
-                        className="w-full"
-                      >
-                        Create Poll
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Active Polls</CardTitle>
+              <BarChart3 size={16} color="#6b7280" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {polls?.map((poll) => (
-                  <div key={poll.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{poll.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {poll.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={poll.status === 'active' ? 'default' : 'secondary'}>
-                            {poll.status}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {poll.total_votes || 0} votes • {poll.target_audience}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => endPoll(poll.id)}
-                          disabled={poll.status !== 'active'}
-                        >
-                          <Clock className="h-4 w-4 mr-2" />
-                          End Poll
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Results
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {polls?.filter(p => p.status === 'active').length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Total: {polls?.length || 0}
+              </Text>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="events" className="space-y-4">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Community Events</CardTitle>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Event
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create Community Event</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="event-title">Event Title</Label>
-                        <Input
-                          id="event-title"
-                          value={eventTitle}
-                          onChange={(e) => setEventTitle(e.target.value)}
-                          placeholder="Enter event title"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="event-description">Description</Label>
-                        <Textarea
-                          id="event-description"
-                          value={eventDescription}
-                          onChange={(e) => setEventDescription(e.target.value)}
-                          placeholder="Enter event description"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="event-type">Event Type</Label>
-                        <Select value={eventType} onValueChange={setEventType}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="job_fair">Virtual Job Fair</SelectItem>
-                            <SelectItem value="webinar">Webinar</SelectItem>
-                            <SelectItem value="ama">AMA Session</SelectItem>
-                            <SelectItem value="workshop">Workshop</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="event-date">Start Date & Time</Label>
-                        <Input
-                          id="event-date"
-                          type="datetime-local"
-                          value={eventDate}
-                          onChange={(e) => setEventDate(e.target.value)}
-                        />
-                      </div>
-                      <Button
-                        onClick={() => createEventMutation.mutate({
-                          title: eventTitle,
-                          description: eventDescription,
-                          event_type: eventType,
-                          start_date: new Date(eventDate).toISOString()
-                        })}
-                        disabled={!eventTitle || !eventDate || createEventMutation.isPending}
-                        className="w-full"
-                      >
-                        Create Event
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Upcoming Events</CardTitle>
+              <Calendar size={16} color="#6b7280" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {events?.map((event) => (
-                  <div key={event.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {event.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline">{event.event_type}</Badge>
-                          <Badge variant={event.status === 'upcoming' ? 'default' : 'secondary'}>
-                            {event.status}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {getEventRegistrationCount(event.id)} registered
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(event.start_date).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Users className="h-4 w-4 mr-2" />
-                          View RSVPs
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {events?.filter(e => new Date(e.start_date) > new Date()).length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Total events: {events?.length || 0}
+              </Text>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Total Votes</CardTitle>
+              <CheckCircle size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>
+                {polls?.reduce((sum, poll) => sum + (poll.total_votes || 0), 0) || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Across all polls</Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Event Registrations</CardTitle>
+              <Users size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{registrations?.length || 0}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Total registrations</Text>
+            </CardContent>
+          </Card>
+        </View>
+
+        <Tabs
+          tabs={['Polls & Surveys', 'Community Events']}
+          initialTab={0}
+          tabContent={(activeIndex) => {
+            if (activeIndex === 0) {
+              // POLLS & SURVEYS
+              return (
+                <Card>
+                  <CardHeader>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <CardTitle>Poll Creation & Management</CardTitle>
+                      <ModalDialog
+                        title="Create New Poll"
+                        trigger={
+                          <Button>
+                            <Plus size={16} />
+                            Create Poll
+                          </Button>
+                        }
+                      >
+                        <View style={{ gap: 16 }}>
+                          <View>
+                            <Label>Poll Title</Label>
+                            <Input
+                              value={pollTitle}
+                              onChangeText={setPollTitle}
+                              placeholder="Enter poll title"
+                            />
+                          </View>
+                          <View>
+                            <Label>Description</Label>
+                            <Textarea
+                              value={pollDescription}
+                              onChangeText={setPollDescription}
+                              placeholder="Enter poll description"
+                            />
+                          </View>
+                          <View>
+                            <Label>Poll Options</Label>
+                            <View style={{ gap: 8 }}>
+                              {pollOptions.map((option, index) => (
+                                <View key={index} style={{ flexDirection: 'row', gap: 8 }}>
+                                  <View style={{ flex: 1 }}>
+                                    <Input
+                                      value={option}
+                                      onChangeText={(text) => updatePollOption(index, text)}
+                                      placeholder={`Option ${index + 1}`}
+                                    />
+                                  </View>
+                                  {pollOptions.length > 2 && (
+                                    <Button
+                                      variant="outline"
+                                      onPress={() => removePollOption(index)}
+                                    >
+                                      Remove
+                                    </Button>
+                                  )}
+                                </View>
+                              ))}
+                            </View>
+                            <Button
+                              variant="outline"
+                              onPress={addPollOption}
+                              style={{ marginTop: 8 }}
+                            >
+                              Add Option
+                            </Button>
+                          </View>
+                          <View>
+                            <Label>Target Audience</Label>
+                            <Select 
+                              value={pollAudience} 
+                              onValueChange={setPollAudience}
+                              options={[
+                                { label: 'All Users', value: 'all' },
+                                { label: 'Only Candidates', value: 'candidates' },
+                                { label: 'Only Employers', value: 'employers' }
+                              ]}
+                            />
+                          </View>
+                          <Button
+                            onPress={() => createPollMutation.mutate({
+                              title: pollTitle,
+                              description: pollDescription,
+                              options: pollOptions.filter(opt => opt.trim()).map((option, index) => ({
+                                option,
+                                votes: 0,
+                                index
+                              })),
+                              target_audience: pollAudience
+                            })}
+                            disabled={!pollTitle || pollOptions.filter(opt => opt.trim()).length < 2 || createPollMutation.isPending}
+                          >
+                            Create Poll
+                          </Button>
+                        </View>
+                      </ModalDialog>
+                    </View>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 16 }}>
+                      {polls?.map((poll) => (
+                        <View 
+                          key={poll.id} 
+                          style={{ 
+                            padding: 16, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontWeight: '500' }}>{poll.title}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+                                {poll.description}
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <Badge variant={poll.status === 'active' ? 'default' : 'secondary'}>
+                                  {poll.status}
+                                </Badge>
+                                <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                  {poll.total_votes || 0} votes • {poll.target_audience}
+                                </Text>
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <Button
+                                variant="outline"
+                                onPress={() => endPoll(poll.id)}
+                                disabled={poll.status !== 'active'}
+                                iconLeft={<Clock size={16} color="#111827" />}
+                              >
+                                End Poll
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                iconLeft={<Eye size={16} color="#111827" />}
+                              >
+                                View Results
+                              </Button>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            if (activeIndex === 1) {
+              // COMMUNITY EVENTS
+              return (
+                <Card>
+                  <CardHeader>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <CardTitle>Community Events</CardTitle>
+                      <ModalDialog
+                        title="Create Community Event"
+                        trigger={
+                          <Button>
+                            <Plus size={16} />
+                            Create Event
+                          </Button>
+                        }
+                      >
+                        <View style={{ gap: 16 }}>
+                          <View>
+                            <Label>Event Title</Label>
+                            <Input
+                              value={eventTitle}
+                              onChangeText={setEventTitle}
+                              placeholder="Enter event title"
+                            />
+                          </View>
+                          <View>
+                            <Label>Description</Label>
+                            <Textarea
+                              value={eventDescription}
+                              onChangeText={setEventDescription}
+                              placeholder="Enter event description"
+                            />
+                          </View>
+                          <View>
+                            <Label>Event Type</Label>
+                            <Select 
+                              value={eventType} 
+                              onValueChange={setEventType}
+                              options={[
+                                { label: 'Virtual Job Fair', value: 'job_fair' },
+                                { label: 'Webinar', value: 'webinar' },
+                                { label: 'AMA Session', value: 'ama' },
+                                { label: 'Workshop', value: 'workshop' }
+                              ]}
+                            />
+                          </View>
+                          <View>
+                            <Label>Start Date & Time</Label>
+                            <Input
+                              value={eventDate}
+                              onChangeText={setEventDate}
+                              placeholder="YYYY-MM-DDTHH:MM"
+                            />
+                          </View>
+                          <Button
+                            onPress={() => createEventMutation.mutate({
+                              title: eventTitle,
+                              description: eventDescription,
+                              event_type: eventType,
+                              start_date: new Date(eventDate).toISOString()
+                            })}
+                            disabled={!eventTitle || !eventDate || createEventMutation.isPending}
+                          >
+                            Create Event
+                          </Button>
+                        </View>
+                      </ModalDialog>
+                    </View>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 16 }}>
+                      {events?.map((event) => (
+                        <View 
+                          key={event.id} 
+                          style={{ 
+                            padding: 16, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontWeight: '500' }}>{event.title}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+                                {event.description}
+                              </Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <Badge variant="outline">{event.event_type}</Badge>
+                                <Badge variant={event.status === 'upcoming' ? 'default' : 'secondary'}>
+                                  {event.status}
+                                </Badge>
+                                <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                  {getEventRegistrationCount(event.id)} registered
+                                </Text>
+                              </View>
+                              <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                                {new Date(event.start_date).toLocaleString()}
+                              </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <Button 
+                                variant="outline"
+                                iconLeft={<Users size={16} color="#111827" />}
+                              >
+                                View RSVPs
+                              </Button>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            return null;
+          }}
+        />
+      </View>
+    </ScrollView>
   );
 };
 

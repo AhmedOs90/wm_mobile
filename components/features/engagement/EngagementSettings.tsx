@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Settings, 
@@ -14,7 +15,7 @@ import {
   Bell,
   Shield,
   Save
-} from 'lucide-react';
+} from 'lucide-react-native';
 
 const EngagementSettings = () => {
   const { toast } = useToast();
@@ -111,421 +112,401 @@ const EngagementSettings = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Engagement Settings</h2>
-          <p className="text-muted-foreground">Configure platform features and limits</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetToDefaults}>
-            Reset to Defaults
-          </Button>
-          <Button onClick={saveSettings}>
-            <Save className="h-4 w-4 mr-2" />
-            Save All Settings
-          </Button>
-        </div>
-      </div>
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ gap: 24, padding: 16 }}>
+        {/* Header */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View>
+            <Text style={{ fontSize: 24, fontWeight: '700' }}>Engagement Settings</Text>
+            <Text style={{ fontSize: 14, color: '#6b7280' }}>Configure platform features and limits</Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Button variant="outline" onPress={resetToDefaults}>
+              Reset to Defaults
+            </Button>
+            <Button 
+              onPress={saveSettings}
+              iconLeft={<Save size={16} color="#fff" />}
+            >
+              Save All Settings
+            </Button>
+          </View>
+        </View>
 
-      {/* Feature Toggles */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Platform Features
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Forum System</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enable community forums and discussions
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.forumEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, forumEnabled: checked }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Real-time Chat</h4>
-                <p className="text-sm text-muted-foreground">
-                  Allow direct messaging between users
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.chatEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, chatEnabled: checked }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Polls & Surveys</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enable community polls and surveys
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.pollsEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, pollsEnabled: checked }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Community Events</h4>
-                <p className="text-sm text-muted-foreground">
-                  Allow event creation and management
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.eventsEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, eventsEnabled: checked }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Gamification</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enable points, badges, and leaderboards
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.gamificationEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, gamificationEnabled: checked }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Notifications</h4>
-                <p className="text-sm text-muted-foreground">
-                  Enable notification system
-                </p>
-              </div>
-              <Switch
-                checked={platformSettings.notificationsEnabled}
-                onCheckedChange={(checked) => 
-                  setPlatformSettings(prev => ({ ...prev, notificationsEnabled: checked }))
-                }
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Chat Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Chat System Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="max-message-length">Max Message Length</Label>
-              <Input
-                id="max-message-length"
-                type="number"
-                value={chatSettings.maxMessageLength}
-                onChange={(e) => 
-                  setChatSettings(prev => ({ ...prev, maxMessageLength: parseInt(e.target.value) }))
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="max-file-size">Max File Size (MB)</Label>
-              <Input
-                id="max-file-size"
-                type="number"
-                value={chatSettings.maxFileSize}
-                onChange={(e) => 
-                  setChatSettings(prev => ({ ...prev, maxFileSize: parseInt(e.target.value) }))
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="rate-limit-messages">Rate Limit (Messages)</Label>
-              <Input
-                id="rate-limit-messages"
-                type="number"
-                value={chatSettings.rateLimitMessages}
-                onChange={(e) => 
-                  setChatSettings(prev => ({ ...prev, rateLimitMessages: parseInt(e.target.value) }))
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="rate-limit-window">Rate Limit Window (Seconds)</Label>
-              <Input
-                id="rate-limit-window"
-                type="number"
-                value={chatSettings.rateLimitWindow}
-                onChange={(e) => 
-                  setChatSettings(prev => ({ ...prev, rateLimitWindow: parseInt(e.target.value) }))
-                }
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <Label htmlFor="allowed-file-types">Allowed File Types</Label>
-              <Textarea
-                id="allowed-file-types"
-                value={chatSettings.allowedFileTypes}
-                onChange={(e) => 
-                  setChatSettings(prev => ({ ...prev, allowedFileTypes: e.target.value }))
-                }
-                placeholder="Comma-separated list: jpg,png,pdf,doc"
-                rows={2}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Allow File Attachments</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Users can attach files to messages
-                  </p>
-                </div>
+        {/* Feature Toggles */}
+        <Card>
+          <CardHeader>
+            <CardTitle style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Settings size={20} color="#111827" />
+              <Text>Platform Features</Text>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View style={{ gap: 24 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Forum System</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Enable community forums and discussions
+                  </Text>
+                </View>
                 <Switch
-                  checked={chatSettings.allowAttachments}
-                  onCheckedChange={(checked) => 
+                  value={platformSettings.forumEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, forumEnabled: checked }))
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Real-time Chat</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Allow direct messaging between users
+                  </Text>
+                </View>
+                <Switch
+                  value={platformSettings.chatEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, chatEnabled: checked }))
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Polls & Surveys</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Enable community polls and surveys
+                  </Text>
+                </View>
+                <Switch
+                  value={platformSettings.pollsEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, pollsEnabled: checked }))
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Community Events</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Allow event creation and management
+                  </Text>
+                </View>
+                <Switch
+                  value={platformSettings.eventsEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, eventsEnabled: checked }))
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Gamification</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Enable points, badges, and leaderboards
+                  </Text>
+                </View>
+                <Switch
+                  value={platformSettings.gamificationEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, gamificationEnabled: checked }))
+                  }
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Notifications</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Enable notification system
+                  </Text>
+                </View>
+                <Switch
+                  value={platformSettings.notificationsEnabled}
+                  onValueChange={(checked) => 
+                    setPlatformSettings(prev => ({ ...prev, notificationsEnabled: checked }))
+                  }
+                />
+              </View>
+            </View>
+          </CardContent>
+        </Card>
+
+        {/* Chat Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <MessageSquare size={20} color="#111827" />
+              <Text>Chat System Configuration</Text>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View style={{ gap: 16 }}>
+              <View>
+                <Label>Max Message Length</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={chatSettings.maxMessageLength.toString()}
+                  onChangeText={(text) => 
+                    setChatSettings(prev => ({ ...prev, maxMessageLength: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
+
+              <View>
+                <Label>Max File Size (MB)</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={chatSettings.maxFileSize.toString()}
+                  onChangeText={(text) => 
+                    setChatSettings(prev => ({ ...prev, maxFileSize: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
+
+              <View>
+                <Label>Rate Limit (Messages)</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={chatSettings.rateLimitMessages.toString()}
+                  onChangeText={(text) => 
+                    setChatSettings(prev => ({ ...prev, rateLimitMessages: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
+
+              <View>
+                <Label>Rate Limit Window (Seconds)</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={chatSettings.rateLimitWindow.toString()}
+                  onChangeText={(text) => 
+                    setChatSettings(prev => ({ ...prev, rateLimitWindow: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
+
+              <View>
+                <Label>Allowed File Types</Label>
+                <Textarea
+                  value={chatSettings.allowedFileTypes}
+                  onChangeText={(text) => 
+                    setChatSettings(prev => ({ ...prev, allowedFileTypes: text }))
+                  }
+                  placeholder="Comma-separated list: jpg,png,pdf,doc"
+                  numberOfLines={2}
+                />
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Allow File Attachments</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                    Users can attach files to messages
+                  </Text>
+                </View>
+                <Switch
+                  value={chatSettings.allowAttachments}
+                  onValueChange={(checked) => 
                     setChatSettings(prev => ({ ...prev, allowAttachments: checked }))
                   }
                 />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
 
-      {/* Forum Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Forum Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="max-post-length">Max Post Length</Label>
-              <Input
-                id="max-post-length"
-                type="number"
-                value={forumSettings.maxPostLength}
-                onChange={(e) => 
-                  setForumSettings(prev => ({ ...prev, maxPostLength: parseInt(e.target.value) }))
-                }
-              />
-            </div>
+        {/* Forum Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Users size={20} color="#111827" />
+              <Text>Forum Configuration</Text>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View style={{ gap: 16 }}>
+              <View>
+                <Label>Max Post Length</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={forumSettings.maxPostLength.toString()}
+                  onChangeText={(text) => 
+                    setForumSettings(prev => ({ ...prev, maxPostLength: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
 
-            <div>
-              <Label htmlFor="max-title-length">Max Title Length</Label>
-              <Input
-                id="max-title-length"
-                type="number"
-                value={forumSettings.maxTitleLength}
-                onChange={(e) => 
-                  setForumSettings(prev => ({ ...prev, maxTitleLength: parseInt(e.target.value) }))
-                }
-              />
-            </div>
+              <View>
+                <Label>Max Title Length</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={forumSettings.maxTitleLength.toString()}
+                  onChangeText={(text) => 
+                    setForumSettings(prev => ({ ...prev, maxTitleLength: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
 
-            <div>
-              <Label htmlFor="max-tags">Max Tags per Post</Label>
-              <Input
-                id="max-tags"
-                type="number"
-                value={forumSettings.maxTagsPerPost}
-                onChange={(e) => 
-                  setForumSettings(prev => ({ ...prev, maxTagsPerPost: parseInt(e.target.value) }))
-                }
-              />
-            </div>
+              <View>
+                <Label>Max Tags per Post</Label>
+                <Input
+                  keyboardType="numeric"
+                  value={forumSettings.maxTagsPerPost.toString()}
+                  onChangeText={(text) => 
+                    setForumSettings(prev => ({ ...prev, maxTagsPerPost: parseInt(text) || 0 }))
+                  }
+                />
+              </View>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Require Post Approval</h4>
-                  <p className="text-sm text-muted-foreground">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Require Post Approval</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Posts need admin approval before publishing
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={forumSettings.requireApproval}
-                  onCheckedChange={(checked) => 
+                  value={forumSettings.requireApproval}
+                  onValueChange={(checked) => 
                     setForumSettings(prev => ({ ...prev, requireApproval: checked }))
                   }
                 />
-              </div>
+              </View>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Allow Anonymous Posts</h4>
-                  <p className="text-sm text-muted-foreground">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Allow Anonymous Posts</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Users can post without showing their name
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={forumSettings.allowAnonymousPosts}
-                  onCheckedChange={(checked) => 
+                  value={forumSettings.allowAnonymousPosts}
+                  onValueChange={(checked) => 
                     setForumSettings(prev => ({ ...prev, allowAnonymousPosts: checked }))
                   }
                 />
-              </div>
+              </View>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Allow Tags</h4>
-                  <p className="text-sm text-muted-foreground">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Allow Tags</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Users can add tags to their posts
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={forumSettings.allowTags}
-                  onCheckedChange={(checked) => 
+                  value={forumSettings.allowTags}
+                  onValueChange={(checked) => 
                     setForumSettings(prev => ({ ...prev, allowTags: checked }))
                   }
                 />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
 
-      {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notification Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Email Notifications</h4>
-                  <p className="text-sm text-muted-foreground">
+        {/* Notification Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Bell size={20} color="#111827" />
+              <Text>Notification Configuration</Text>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View style={{ gap: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Email Notifications</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Send notifications via email
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={notificationSettings.emailNotifications}
-                  onCheckedChange={(checked) => 
+                  value={notificationSettings.emailNotifications}
+                  onValueChange={(checked) => 
                     setNotificationSettings(prev => ({ ...prev, emailNotifications: checked }))
                   }
                 />
-              </div>
+              </View>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Push Notifications</h4>
-                  <p className="text-sm text-muted-foreground">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>Push Notifications</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Send browser/mobile push notifications
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={notificationSettings.pushNotifications}
-                  onCheckedChange={(checked) => 
+                  value={notificationSettings.pushNotifications}
+                  onValueChange={(checked) => 
                     setNotificationSettings(prev => ({ ...prev, pushNotifications: checked }))
                   }
                 />
-              </div>
+              </View>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">In-App Notifications</h4>
-                  <p className="text-sm text-muted-foreground">
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                  <Text style={{ fontWeight: '500' }}>In-App Notifications</Text>
+                  <Text style={{ fontSize: 14, color: '#6b7280' }}>
                     Show notifications within the platform
-                  </p>
-                </div>
+                  </Text>
+                </View>
                 <Switch
-                  checked={notificationSettings.inAppNotifications}
-                  onCheckedChange={(checked) => 
+                  value={notificationSettings.inAppNotifications}
+                  onValueChange={(checked) => 
                     setNotificationSettings(prev => ({ ...prev, inAppNotifications: checked }))
                   }
                 />
-              </div>
-            </div>
+              </View>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="digest-frequency">Email Digest Frequency</Label>
+              <View>
+                <Label>Email Digest Frequency</Label>
                 <Select 
                   value={notificationSettings.digestFrequency} 
                   onValueChange={(value) => 
                     setNotificationSettings(prev => ({ ...prev, digestFrequency: value }))
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="immediate">Immediate</SelectItem>
-                    <SelectItem value="hourly">Hourly</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="never">Never</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  options={[
+                    { label: 'Immediate', value: 'immediate' },
+                    { label: 'Hourly', value: 'hourly' },
+                    { label: 'Daily', value: 'daily' },
+                    { label: 'Weekly', value: 'weekly' },
+                    { label: 'Never', value: 'never' }
+                  ]}
+                />
+              </View>
 
-              <div>
-                <Label htmlFor="quiet-hours-start">Quiet Hours Start</Label>
+              <View>
+                <Label>Quiet Hours Start</Label>
                 <Input
-                  id="quiet-hours-start"
-                  type="time"
                   value={notificationSettings.quietHoursStart}
-                  onChange={(e) => 
-                    setNotificationSettings(prev => ({ ...prev, quietHoursStart: e.target.value }))
+                  onChangeText={(text) => 
+                    setNotificationSettings(prev => ({ ...prev, quietHoursStart: text }))
                   }
                 />
-              </div>
+              </View>
 
-              <div>
-                <Label htmlFor="quiet-hours-end">Quiet Hours End</Label>
+              <View>
+                <Label>Quiet Hours End</Label>
                 <Input
-                  id="quiet-hours-end"
-                  type="time"
                   value={notificationSettings.quietHoursEnd}
-                  onChange={(e) => 
-                    setNotificationSettings(prev => ({ ...prev, quietHoursEnd: e.target.value }))
+                  onChangeText={(text) => 
+                    setNotificationSettings(prev => ({ ...prev, quietHoursEnd: text }))
                   }
                 />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
+      </View>
+    </ScrollView>
   );
 };
 

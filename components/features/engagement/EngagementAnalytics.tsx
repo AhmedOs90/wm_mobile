@@ -1,7 +1,9 @@
+import React from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -11,7 +13,7 @@ import {
   Award,
   Eye,
   ThumbsUp
-} from 'lucide-react';
+} from 'lucide-react-native';
 
 const EngagementAnalytics = () => {
   // Fetch analytics data
@@ -126,280 +128,345 @@ const EngagementAnalytics = () => {
   const weeklyEngagement = getEngagementTrend();
 
   return (
-    <div className="space-y-6">
-      {/* KPI Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              With recent activity
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalChatMessages}</div>
-            <p className="text-xs text-muted-foreground">
-              Chat messages sent
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Forum Activity</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalForumPosts + totalForumReplies}</div>
-            <p className="text-xs text-muted-foreground">
-              Posts and replies
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weekly Trend</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{weeklyEngagement}</div>
-            <p className="text-xs text-muted-foreground">
-              Activities this week
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="forum">Forum Analytics</TabsTrigger>
-          <TabsTrigger value="engagement">User Engagement</TabsTrigger>
-          <TabsTrigger value="events">Events & Polls</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Engagement Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Forum Posts</span>
-                    <Badge variant="secondary">{totalForumPosts}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Forum Replies</span>
-                    <Badge variant="secondary">{totalForumReplies}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Chat Messages</span>
-                    <Badge variant="secondary">{totalChatMessages}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Poll Votes</span>
-                    <Badge variant="secondary">{totalPollVotes}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Event Registrations</span>
-                    <Badge variant="secondary">{totalEventRegistrations}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Platform Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Forum Categories</span>
-                    <Badge variant="outline">{forumStats?.categories.length || 0}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Active Polls</span>
-                    <Badge variant="outline">
-                      {pollStats?.polls.filter(p => p.status === 'active').length || 0}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Upcoming Events</span>
-                    <Badge variant="outline">
-                      {eventStats?.events.filter(e => new Date(e.start_date) > new Date()).length || 0}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Total Users Engaged</span>
-                    <Badge variant="outline">{userEngagement?.length || 0}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="forum" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Most Active Categories</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {forumStats?.categories.slice(0, 5).map((category) => {
-                    const categoryPosts = forumStats.posts.filter(p => p.category_id === category.id);
-                    return (
-                      <div key={category.id} className="flex items-center justify-between p-3 border rounded">
-                        <div>
-                          <p className="font-medium">{category.name}</p>
-                          <p className="text-sm text-muted-foreground">{category.description}</p>
-                        </div>
-                        <Badge variant="secondary">{categoryPosts.length} posts</Badge>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Forum Engagement Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Total Views</p>
-                      <p className="text-2xl font-bold">
-                        {forumStats?.posts.reduce((sum, post) => sum + (post.views_count || 0), 0) || 0}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Total Likes</p>
-                      <p className="text-2xl font-bold">
-                        {forumStats?.posts.reduce((sum, post) => sum + (post.likes_count || 0), 0) || 0}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Avg Replies per Post</p>
-                      <p className="text-2xl font-bold">
-                        {totalForumPosts > 0 ? Math.round(totalForumReplies / totalForumPosts) : 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="engagement" className="space-y-4">
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ gap: 24, padding: 16 }}>
+        {/* KPI Overview */}
+        <View style={{ gap: 16 }}>
           <Card>
-            <CardHeader>
-              <CardTitle>Top Contributors</CardTitle>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Active Users</CardTitle>
+              <Users size={16} color="#6b7280" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {topContributors.map((user, index) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 border rounded">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted">
-                        <span className="text-sm font-medium">#{index + 1}</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">User {user.user_id}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {user.forum_posts} posts • {user.forum_replies} replies
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold">{user.total_points} pts</div>
-                      <Badge variant="outline" className="text-xs">
-                        {user.current_rank}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{activeUsers}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                With recent activity
+              </Text>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="events" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Poll Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pollStats?.polls.slice(0, 5).map((poll) => (
-                    <div key={poll.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="font-medium">{poll.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {poll.target_audience} • {poll.status}
-                        </p>
-                      </div>
-                      <Badge variant="secondary">{poll.total_votes || 0} votes</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Total Messages</CardTitle>
+              <MessageCircle size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{totalChatMessages}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Chat messages sent
+              </Text>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Participation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {eventStats?.events.slice(0, 5).map((event) => {
-                    const registrationCount = eventStats.registrations.filter(r => r.event_id === event.id).length;
-                    return (
-                      <div key={event.id} className="flex items-center justify-between p-3 border rounded">
-                        <div>
-                          <p className="font-medium">{event.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {event.event_type} • {event.status}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">{registrationCount} registered</Badge>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Forum Activity</CardTitle>
+              <BarChart3 size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{totalForumPosts + totalForumReplies}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Posts and replies
+              </Text>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <CardTitle style={{ fontSize: 14, fontWeight: '500' }}>Weekly Trend</CardTitle>
+              <TrendingUp size={16} color="#6b7280" />
+            </CardHeader>
+            <CardContent>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>{weeklyEngagement}</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                Activities this week
+              </Text>
+            </CardContent>
+          </Card>
+        </View>
+
+        <Tabs
+          tabs={['Overview', 'Forum Analytics', 'User Engagement', 'Events & Polls']}
+          initialTab={0}
+          tabContent={(activeIndex) => {
+            if (activeIndex === 0) {
+              // OVERVIEW
+              return (
+                <View style={{ gap: 24 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Engagement Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 16 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Forum Posts</Text>
+                          <Badge variant="secondary">{totalForumPosts}</Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Forum Replies</Text>
+                          <Badge variant="secondary">{totalForumReplies}</Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Chat Messages</Text>
+                          <Badge variant="secondary">{totalChatMessages}</Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Poll Votes</Text>
+                          <Badge variant="secondary">{totalPollVotes}</Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Event Registrations</Text>
+                          <Badge variant="secondary">{totalEventRegistrations}</Badge>
+                        </View>
+                      </View>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Platform Statistics</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 16 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Forum Categories</Text>
+                          <Badge variant="outline">{forumStats?.categories.length || 0}</Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Active Polls</Text>
+                          <Badge variant="outline">
+                            {pollStats?.polls.filter(p => p.status === 'active').length || 0}
+                          </Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Upcoming Events</Text>
+                          <Badge variant="outline">
+                            {eventStats?.events.filter(e => new Date(e.start_date) > new Date()).length || 0}
+                          </Badge>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 14, fontWeight: '500' }}>Total Users Engaged</Text>
+                          <Badge variant="outline">{userEngagement?.length || 0}</Badge>
+                        </View>
+                      </View>
+                    </CardContent>
+                  </Card>
+                </View>
+              );
+            }
+
+            if (activeIndex === 1) {
+              // FORUM ANALYTICS
+              return (
+                <View style={{ gap: 24 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Most Active Categories</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 12 }}>
+                        {forumStats?.categories.slice(0, 5).map((category) => {
+                          const categoryPosts = forumStats.posts.filter(p => p.category_id === category.id);
+                          return (
+                            <View 
+                              key={category.id} 
+                              style={{ 
+                                flexDirection: 'row', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between', 
+                                padding: 12, 
+                                borderWidth: 1, 
+                                borderColor: '#e5e7eb', 
+                                borderRadius: 8 
+                              }}
+                            >
+                              <View>
+                                <Text style={{ fontWeight: '500' }}>{category.name}</Text>
+                                <Text style={{ fontSize: 14, color: '#6b7280' }}>{category.description}</Text>
+                              </View>
+                              <Badge variant="secondary">{categoryPosts.length} posts</Badge>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Forum Engagement Metrics</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 16 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <Eye size={16} color="#6b7280" />
+                          <View>
+                            <Text style={{ fontWeight: '500' }}>Total Views</Text>
+                            <Text style={{ fontSize: 24, fontWeight: '700' }}>
+                              {forumStats?.posts.reduce((sum, post) => sum + (post.views_count || 0), 0) || 0}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <ThumbsUp size={16} color="#6b7280" />
+                          <View>
+                            <Text style={{ fontWeight: '500' }}>Total Likes</Text>
+                            <Text style={{ fontSize: 24, fontWeight: '700' }}>
+                              {forumStats?.posts.reduce((sum, post) => sum + (post.likes_count || 0), 0) || 0}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <MessageCircle size={16} color="#6b7280" />
+                          <View>
+                            <Text style={{ fontWeight: '500' }}>Avg Replies per Post</Text>
+                            <Text style={{ fontSize: 24, fontWeight: '700' }}>
+                              {totalForumPosts > 0 ? Math.round(totalForumReplies / totalForumPosts) : 0}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </CardContent>
+                  </Card>
+                </View>
+              );
+            }
+
+            if (activeIndex === 2) {
+              // USER ENGAGEMENT
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Contributors</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <View style={{ gap: 12 }}>
+                      {topContributors.map((user, index) => (
+                        <View 
+                          key={user.id} 
+                          style={{ 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between', 
+                            padding: 12, 
+                            borderWidth: 1, 
+                            borderColor: '#e5e7eb', 
+                            borderRadius: 8 
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            <View style={{ 
+                              flexDirection: 'row', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              width: 32, 
+                              height: 32, 
+                              borderRadius: 16, 
+                              backgroundColor: '#f3f4f6' 
+                            }}>
+                              <Text style={{ fontSize: 14, fontWeight: '500' }}>#{index + 1}</Text>
+                            </View>
+                            <View>
+                              <Text style={{ fontWeight: '500' }}>User {user.user_id}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                                {user.forum_posts} posts • {user.forum_replies} replies
+                              </Text>
+                            </View>
+                          </View>
+                          <View style={{ alignItems: 'flex-end' }}>
+                            <Text style={{ fontWeight: '700' }}>{user.total_points} pts</Text>
+                            <Badge variant="outline" style={{ fontSize: 12 }}>
+                              {user.current_rank}
+                            </Badge>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            if (activeIndex === 3) {
+              // EVENTS & POLLS
+              return (
+                <View style={{ gap: 24 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Poll Performance</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 12 }}>
+                        {pollStats?.polls.slice(0, 5).map((poll) => (
+                          <View 
+                            key={poll.id} 
+                            style={{ 
+                              flexDirection: 'row', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between', 
+                              padding: 12, 
+                              borderWidth: 1, 
+                              borderColor: '#e5e7eb', 
+                              borderRadius: 8 
+                            }}
+                          >
+                            <View>
+                              <Text style={{ fontWeight: '500' }}>{poll.title}</Text>
+                              <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                                {poll.target_audience} • {poll.status}
+                              </Text>
+                            </View>
+                            <Badge variant="secondary">{poll.total_votes || 0} votes</Badge>
+                          </View>
+                        ))}
+                      </View>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Event Participation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <View style={{ gap: 12 }}>
+                        {eventStats?.events.slice(0, 5).map((event) => {
+                          const registrationCount = eventStats.registrations.filter(r => r.event_id === event.id).length;
+                          return (
+                            <View 
+                              key={event.id} 
+                              style={{ 
+                                flexDirection: 'row', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between', 
+                                padding: 12, 
+                                borderWidth: 1, 
+                                borderColor: '#e5e7eb', 
+                                borderRadius: 8 
+                              }}
+                            >
+                              <View>
+                                <Text style={{ fontWeight: '500' }}>{event.title}</Text>
+                                <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                                  {event.event_type} • {event.status}
+                                </Text>
+                              </View>
+                              <Badge variant="secondary">{registrationCount} registered</Badge>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </CardContent>
+                  </Card>
+                </View>
+              );
+            }
+
+            return null;
+          }}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
